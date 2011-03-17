@@ -1,0 +1,46 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.66.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+SHA1 5db13e2714a6f2798a42f814caf1ee795bbaf3ec Changes
+SHA1 4fd10efcea7157e7d9c3a45e000c91119dcad1f7 LICENSE
+SHA1 1fef5ecdacf073503f79c630e030e0d68edb2904 MANIFEST
+SHA1 6c3353bec75053cc60c56d5552b92ba0dcb72181 MANIFEST.SKIP
+SHA1 78a353d02404e9f8834e15850fb7b25af2ec17ee META.json
+SHA1 9de8d1ed4bb5ed8cb9d5280935084ef7cada65c0 META.yml
+SHA1 5ebf90491da04a4443d7f6386ccdc23d0e12e78f Makefile.PL
+SHA1 0d608552d64a789555c01cb4296124e0848e007e README
+SHA1 70d063ccd0ed8bdb76d939c90f4848c786812cc2 dist.ini
+SHA1 469b5019da22d6b55af38a76b442fb71932faecd lib/Giddy.pm
+SHA1 3ee325ad8015a8e053783542decb00abe81a8034 lib/Giddy/Collection.pm
+SHA1 bcd848c37549b68e7bdbce488758e17db036acd0 lib/Giddy/Collection/InMemory.pm
+SHA1 6072c3bce91533bb0e5649ad62d28535ef7fb487 lib/Giddy/Database.pm
+SHA1 2001441618e902a2d6cbcb2030e628c4dc4d9dd2 lib/Giddy/Manual.pod
+SHA1 f84c07eb33ba34c7d92176beb5f4288e1ff0e1b5 lib/Giddy/Role/DocumentLoader.pm
+SHA1 58e2e9664e1a5cacd7e30341200f6b1ec2c34485 lib/Giddy/Role/DocumentMatcher.pm
+SHA1 289b0ab9f85d8012fe20a36e9504e279c1583da7 lib/Giddy/Role/DocumentStorer.pm
+SHA1 ee454a6abb7b06017f67326883f92955ac9dd294 lib/Giddy/Role/DocumentUpdater.pm
+SHA1 f09c466f8d703518bf9dfad4d3fc38bb26e39599 t/00-load.t
+SHA1 0464b73b5c4d6f6278dea1389b0640faa021b956 t/01-cached.t
+SHA1 87768d177f8c2e2df9c591cde869e7c8a245555e t/release-dist-manifest.t
+SHA1 9433c240fe590bc404ab68ff63984df763e347ed t/release-pod-coverage.t
+SHA1 b30cbdfaf935017c4568c0c91b242438cb87786e t/release-pod-syntax.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iF4EAREIAAYFAk2CknsACgkQa4OHQAFM10cMRwD/XjCBjQrfrmTrOJc5hgqAC1xq
+Ubp+KWQCBX+Isphaa5oBAKEfeT6h+mh8KYI3cz8HeRkeweRrZPxz5wezUb5VtveW
+=9xub
+-----END PGP SIGNATURE-----

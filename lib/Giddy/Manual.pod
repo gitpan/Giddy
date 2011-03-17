@@ -1,0 +1,933 @@
+=head1 NAME
+
+Giddy::Manual - Manual for the Giddy versioned NoSQL database
+
+=head1 VERSION
+
+version 0.01
+
+=head1 PROJECT STATUS
+
+This project is currently in alpha status, released for testing purposes
+only. Do not use it for production yet!
+
+=head1 FAQ
+
+=head2 WHAT IS GIDDY?
+
+Giddy is a schema-less (as in NoSQL), versioned database system built on
+top of Git. A database in Giddy is simply a Git repository, providing the
+database with automatic, comprehensive versioning and distributive capabilities.
+
+As opposed to most modern database systems, Giddy aims to be human editable.
+One can create/edit/delete database entries with nothing but a text editor
+and some simple git commands (YAML has been chosen as the serialization
+format since YAML is well suited as a human editable format; however, JSON
+support is planned). This module provides an API for usage by Perl applications.
+
+Main database features (not all features implemented yet):
+
+=over
+
+=item * Human editable
+
+=item * Multiple version concurrency
+
+=item * Concurrent transactions 
+
+=item * Distributed peers
+
+=item * Disconnected operation
+
+=item * Consistent UTF-8 encoding
+
+=item * Other fancy words
+
+=back
+
+Giddy was inspired by the similar, Scala-based L<gimd|https://code.google.com/p/gimd/>
+project; the Ruby-based L<toto|http://cloudhead.io/toto> blogging
+platform; and L<MongoDB>. While the database's structure is very similar
+to that of gimd and toto, its API's syntax was written to closely resemble that
+of MongoDB.
+
+=head2 WHAT ARE GIDDY'S USE CASES?
+
+Giddy is not meant to be a general-purpose database system such as MySQL, Oracle,
+MongoDB or CouchDB, and thus can't replace them for most use cases. Giddy
+is designed for one specific use case: providing a storage backend for
+document-based websites and web applications. Note that the usage of the
+term "document" in this context isn't the same as in "document-oriented
+database" from databases such as MongoDB. "Document" in Giddy's context
+is just that - a document, such as text articles, HTML pages, etc. That
+said, this distinction is merely theoretical, as Giddy documents are
+mostly (but not always) not different than MongoDB/CouchDB documents.
+
+So, while you I<could> use Giddy for a lot of purposes, you probably I<shouldn't>.
+
+=head2 IS IT FAST?
+
+Probably not. Giddy cannot compete with databases like MySQL or MongoDB.
+While the underlying Git system is known to be fast at what it does,
+the YAML serialization employed by Giddy is time consuming. Giddy aims to
+be I<fast enough> for the use case described above. Updating documents
+(unless performed by direct file editing) is also time consuming, as Giddy
+can't update in-place like MongoDB does.
+
+=head2 IS IT ACID COMPLIANT?
+
+No. While Giddy is atomic (all operations are performed by a single commit,
+so either all of them happen, or none at all), isolated (other operations
+cannot access data modified by an in-progress commit). Giddy is definitely
+not consistent, as no consistency checks or data validations are performed
+(this stems from the fact that Giddy is a schema-less database, thus Giddy
+will never be consistent). As for durability, I'm actually not quite sure.
+In Git, once a commit has been performed, it will not go away. That is,
+not by accident at least. Commits can be completely cancelled in Git, so
+therefore I'm not really sure if Giddy complies with this requirement. I'm
+not really a database system designer nor am I a Git-guru. I look at things
+much more pragmatically than technically.
+
+=head2 IS IT RELATIONAL?
+
+No. Giddy is a NoSQL, schema-less database system, and thus is not relational.
+That said, Giddy uses a hierarchical model making it at least I<somewhat>
+relational. Read L</"DATABASE STRUCTURE"> for more information.
+
+=head2 WHAT PLATFORMS ARE SUPPORTED?
+
+Giddy aims to be supported under any Perl-supported system, be it Unix-like
+systems, Windows systems, Mac systems, etc. However, Giddy is currently
+developed and tested only under Linux and probably won't work on non-Unix-like
+systems yet.
+
+=head2 WHAT KIND OF DATA CAN BE STORED IN A GIDDY DATABASE?
+
+Short answer: anything.
+Long answer: Giddy takes a simple approach to data handling. Anything
+that is purely textual (including numbers) is stored textually. Anything
+that can be serialized (such as Perl data structures) should be serialized
+and stored textually as well. Anything binary or that can't be serialized
+should be stored as-is in individual files. For further information, move
+on to L</"DATABASE STRUCTURE">.
+
+=head2 WHICH CHARACTER SETS AND ENCODINGS ARE SUPPORTED?
+
+Giddy only supports UTF-8 and nothing else! All files created by Giddy
+are UTF-8 encoded. All data I<written> to these files is automatically
+UTF-8 encoded, wile all data I<read> from these files is automatically
+UTF-8 decoded. When creating/manilpulating documents by hand (as said,
+human editing is supported), one must be careful to create the files in
+UTF-8.
+
+=head2 CAN GIDDY WORK WITH BARE GIT REPOSITORIES?
+
+Yes and no. No, because in order to actually use the database (that is,
+create/edit/delete collections/documents) the Git repository must have
+a working directory. Thus, the L<Giddy> module must work with a database's
+working directory. Yes, because you can have a bare clone of the database
+(which may serve as the database's "origin"), but you cannot manipulate it
+directly. Always remeber that Giddy databases are plain Git repositories,
+nothing more. Everything you know from Git is true in Giddy.
+
+=head2 CAN I HELP?
+
+Yes, you can. I'm currently looking for people who can help with the development
+of Giddy, especially test writing and helping me with adding support for other
+systems like Microsoft Windows. I'd be very happy if anyone has suggestions
+on how to make Giddy faster. Other than that, please report any bugs you find
+through the normal channels (see L<Giddy/"BUGS"> for more information on bug
+reporting).
+
+=head1 DATABASE STRUCTURE
+
+As previousely stated, a Giddy database is a Git repository. Like MongoDB,
+entries (documents) are stored inside collections (which are analogous
+to SQL tables), but as opposed to MongoDB, collections are nestable
+(infinitely). As a matter of fact, the repository's root folder is the
+database's root collection. This collection can contain as many sub-collections
+as you wish (or, more correctly, as your file system supports). These
+sub-collections can have as many sub-collections of their own, etc. In other
+words, a Giddy database is hierarchical. If it isn't clear enough, a collection
+in Giddy is a directory in the file system.
+
+Not only that, documents can have sub-collections of their own. This
+feature is intended to provide at least some relational capabilities to
+the database, since documents stored in a collection that is a child of
+a document can be thought of as belonging to that parent document. In other
+words, the collection can be considered an attribute of the parent document,
+containing a list of child documents. It's not perfect, but it's something.
+
+Documents in a Giddy collection are stored in two ways (which can be
+seemlessly combined, i.e. a collection can have documents of both kind):
+
+=over
+
+=item 1. The simple way (suited for articles and HTML pages): A file
+document, consisting of one text file. This file has two sections, separated
+by two newline characters. The top section is YAML text holding the document's
+attributes. The bottom section (i.e. after the double newlines) is the
+article's text (or the page's HTML), which is actually called the
+document's '_body' attribute. If the document has no attributes other
+than its body, then it won't have a YAML section, just the text section,
+without the double newline characters before it. This is very similar to
+HTTP requests/responses. This type of document, however, is limited, since
+it cannot have binary attributes and cannot have child collections; it is
+mostly provided for its convenience (very human editable) and since it 
+
+=item 2. The normal way: A directory-based document, holding a YAML file
+called 'attributes.yaml' (required) which holds all the document's textual/serializable
+attributes, and zero or more binary files. These files are also considered
+attributes of the document. Quite frankly, Giddy will not care if the files
+are in fact binary. They can be JSON or plain text files for all it cares, but as
+long as they are separate than attributes.yaml, they will be considered
+binary attributes. The document directory can also have sub-directories,
+or more correctly sub-collections. These hold child directories of the
+document. You can think of a document's sub-collection as another attribute
+of the document.
+
+Documents in Giddy don't have an ID attribute. Every document has a '_name'
+attribute which is simply the document's file name (or directory name in
+case it's a directory-based document). This file name is unique in the
+collection, and thus can serve as the documents ID.
+
+=back
+
+I aim to add support for directories which don't contain documents at all,
+but only "static files", which will make it suitable for binary file storage.
+This is not implemented yet though.
+
+How does Giddy differentiate between collection directories and document
+directories? Simple, if a directory has an 'attributes.yaml' file - then
+it is a document. If it doesn't, then it's a collection.
+
+=head2 EXAMPLE STRUCTURE
+
+Let's take a look at an example of a simple Giddy database:
+
+	/var/database/test_db/			<-- The database, also its root collection
+		index.html				<-- A document file (implies '_body' attribute holds HTML data)
+		data.json				<-- A document file (implies '_body' attribute holds JSON text)
+		about/					<-- A document directory
+			attributes.yaml				<-- The document's textual/serializable attributes
+			image.png				<-- A binary attribute
+			stuff.json				<-- Another binary attribute, though actually textual
+		forum/					<-- A collection
+			general_topics/				<-- A collection
+				giddy_is_cool/				<-- A document directory
+					attributes.yaml				<-- The document's attributes
+					comments/				<-- A collection
+						one.html				<-- A document file
+						two.html				<-- A document file
+				giddy_is_dumb/				<-- A document directory
+					attributes.yaml				<-- The document's attributes
+			perl_topics/				<-- A collection
+				having_some_unicode_problems/		<-- A document directory
+					attributes.yaml				<-- The document's attributes
+
+The structure should be pretty self-explanatory. You can see that this
+database basically represents an entire website. This is Giddy's main
+purpose and its strength. Imagine having the power of a dynamic website
+with the convenience of being able to maintain it as if it were completely
+static.
+
+=head1 WORKING WITH THE GIDDY MODULE
+
+As previously mentioned, Giddy's syntax was modeled after L<MongoDB>'s
+syntax. Apart from a few changes, they are quite the same.
+
+=head2 GETTING A NEW INSTANCE OF THE GIDDY MODULE
+
+To start using Giddy, all you need to do is:
+
+	my $giddy = Giddy->new;
+
+No parameters or attributes are required.
+
+=head2 CREATING A DATABASE / CONNECTING TO AN EXISTING DATABASE
+
+As in MongoDB, Giddy doesn't care if a database already exists or not. The
+syntax for creating/connecting to a database is the same:
+
+	my $db = $giddy->get_database('/path/to/database');
+
+If the database doesn't exist yet, Giddy will attempt to create it and
+initialize it as a Git repository.
+
+Once the database has been created, it already has one collection, the
+root collection, which actually is C</path/to/database>.
+
+=head2 CREATING A COLLECTION / GETTING AN EXISTING COLLECTION
+
+Just like above, the syntax for creating/getting a collection is the same:
+
+	my $coll = $db->get_collection('/collection'); # gets the collection /path/to/database/collection
+	my $root = $db->get_collection('/');	# get the root collection /path/to/database
+						# (also simply $db->get_collection() with no parameters)
+
+=head2 CREATING DOCUMENTS
+
+Creating documents is easy. To insert one document, all you need to do is:
+
+	$coll->insert( $name, \%attributes );
+
+For example:
+
+	$coll->insert( 'some_data', { numbers => [1, 2, 3], text => "What's up?", regex => qr/^\d+$/ } );
+
+Will create the directory /path/to/database/collection/some_data/ with
+the file 'attributes.yaml' which will look something like:
+
+	text:		What's up?
+	regex:		!!perl/regexp (?-xism:^\d+$)
+	numbers:
+		- 1
+		- 2
+		- 3
+
+The reason this syntax is slightly different than MongoDB's C<insert()>
+method is that you have to pass a filename, Giddy cannot generate random
+file names for you like MongoDB generates an '_id' method if you don't
+provide one.
+
+Creating document files is similar, all you need to do is provide a '_body'
+attribute. If the document you're inserting has a '_body' attribute, then
+it will I<always> be saved as a document file:
+
+	$root->insert( 'index.html', { author => "Ido Perlmuter", date => "2011-03-15", _body => "<html><title>Giddy Sucks!</title></html>" } )
+
+Will create the file /path/to/database/index.html with the following contents:
+
+	author:		Ido Perlmuter
+	date:		2011-03-15
+	
+	<html><title>Giddy Sucks!</title></html>
+
+Like MongoDB, you can batch insert documents, but the syntax is slightly
+different: you have to provide an even-number array-ref, like so:
+
+	$coll->batch_insert([ 'index.html' => $index_attrs, 'about.html' => $about_attrs ]);
+
+As previousely mentioned, data inserted is automatically UTF-8 decoded,
+so make sure your data actually is UTF-8.
+
+Note that the C<insert()> method returns the full path of the document created.
+For example, creating 'index.html' in the '/articles' collection returns '/articles/index.html'.
+C<batch_insert()> will return an array of all paths created.
+
+After creating documents, they are not yet added to the database. You have to commit
+your changes first. If you know Git (and you should), you'd know you have to stage
+the created files for Git to recognize them with the C<git add> command. Giddy
+does that automatically for you, so there's no need to do that. However, Git doesn't
+commit automatically. See L</"COMMITING CHANGES"> later on for more info.
+
+=head2 FINDING DOCUMENTS
+
+Finding/querying documents in Giddy is very similar to MongoDB, but with
+a key difference inspired by L<DBIx::Class>: In MongoDB, a collection is
+queried with the C<find()> or C<query()> methods, and a cursor/iterator
+object (L<MongoDB::Cursor>) is returned, allowing to iterate over the
+results. In Giddy, however, there aren't any cursors. When you query a
+collection, you don't get a cursor back, but an entirely new collection,
+stored in memory, which is a subset of the queried collection. This is just
+like in the SQL world: when you select rows from a table, the result set
+is a temporary table of its own that can also be queried.
+
+So, in Giddy, a collection (represented by a L<Giddy::Collection> object) is both
+query-able and iterable. You can iterate through the documents in the collection
+without querying it. When you do query it, you get an in-memory collection back
+(represented by a L<Giddy::Collection::InMemory> object, which inherits from
+Giddy::Collection), on which you can perform further queries. This allows for
+much more flexbility when filtering documents.
+
+Finding documents is primarily performed by the C<find()> method in
+L<Giddy::Collection>. This method expects (but doesn't require) a hash-ref
+of whose keys are attribute names, and whose values are constraints
+that a document must conform to in order to be matched by the query. For
+example, let's find documents that have an 'author' attribute with the
+value 'Some Guy':
+
+	my $in_mem_coll = $coll->find({ author => 'Some Guy' });
+
+This roughly translates to the SQL command C<< SELECT * FROM <collection> WHERE author = 'Some Guy' >>.
+By default, if you provide multiple attributes, then an AND query is performed:
+
+	$coll->find({ author => 'Some Guy', year => 2011 });
+
+This translates to C<< SELECT * FROM <collection> WHERE author = 'Some Guy' AND year = 2011 >>.
+Equality is the easiest constraint for an attribute. However, there are
+many more constraints one can use. These constraints need to be defined
+in a hash-ref, and this hash-ref is assigned to the appropriate attribute
+in the query. The following constraints are supported:
+
+=over
+
+=item * C<$gt> - Requires that an attribute's value will be larger (either
+numerically or textually) then the provided value. For example:
+
+	$coll->find({ number => { '$gt' => 3 } })
+
+=item * C<$gte> - Requires that an attribute's value will be larger than
+or equal to the provided value.
+
+=item * C<$lt> - Requries that an attribute's value will be lower than
+the provided value.
+
+=item * C<$lte> - Requires that an attribute's value will be lower than
+or equal to the provide value.
+
+=item * C<$ne> - Requires that an attribute's value will I<not> be equal
+to the provided value:
+
+	$coll->find({ author => { '$ne' => 'Some Guy' } })
+
+=item * C<$eq> - Requires that an attribute's value will be equal to the
+provided value. This is useful when you're using more than one constraint
+on an attribute and want to use equality too, or just for consistency with
+all other constraints, if you prefer so.
+
+=item * C<$exists> - If provided a true value, requires that a document has
+this attribute (even if its value is undefined, i.e. null). If provided
+a false value, requires that a document doesn't have that attribute. For
+example:
+
+	$coll->find({ author => { '$exists' => 1 } })
+
+Will find documents that have the 'author' attribute, while
+
+	$coll->find({ author => { '$exists' => 0 } })
+
+Will find documents that don't have the 'author' attribute.
+
+=item * C<$mod> - If set an array-ref of two numbers, requires that the remainder
+of an number-attribute's value divided by the array's first value will equal
+the array's second value. For example:
+
+	$coll->find({ number => { '$mod' => [10, 1] } })
+
+Will find documents that have the 'number' attribute with a value, say 'x',
+for which x % 10 == 1.
+
+=item * C<$in> - Requires that an attribute's value will be one of the values
+in the provided array. For example:
+
+	$coll->find({ author => { '$in' => ['Some Guy', 'Other Guy', 'That Guy'] } })
+
+Will match all documents whose author attribute is either 'Some Guy',
+'Other Guy' or 'That Guy'.
+
+=item * C<$nin> - The opposite of C<$in>, requires that an attribute's
+value will I<not> be in the provided array.
+
+=item * C<$size> - Requires that an array-attribute will have an exact
+size:
+
+	$coll->find({ children => { '$size' => 3 } })
+
+This query will match documents that have a 'children' attributes whose
+value is an array that has exactly three items.
+
+=item * C<$all> - Requires that an array-attribute will have all of the
+provided values. For example:
+
+	$coll->find({ children => { '$all' => ['Mark', 'Peter'] } })
+
+Will find documents that have a 'children' attribute with an array that
+contains both the values 'Mark' and 'Peter' (it can, of course, contain
+more values). The order of the values does not matter.
+
+=item * C<$type> - Requires that a document have an attribute whose value
+is of a specific type. Supported types are 'int' for integer, 'double'
+for a floating point number, 'string', 'array', 'bool' (for boolean, but
+note that any attribute that exists will match this type since everything
+in Perl is a boolean), 'date' (for L<DateTime::Format::W3CDTF> formatted
+strings), 'null' (for undefined values) and 'regex' (for regular expression
+objects like those created with the C<qr//> operator).
+
+	$coll->find({ children => { '$type' => 'array' }, number => { '$type' => 'double' } })
+
+=back
+
+Now, as stated, documents will be matched against the query hash-ref for I<all>
+the attributes, meanings this is basically an AND search. Giddy also provides
+support for OR queries, just like in MongoDB:
+
+	$coll->find({ '$or' => [ { author => 'Some Guy' }, { author => 'Other Guy' } ], year => 2011 })
+
+This roughly translates to the SQL command C<< SELECT * FROM <collection> WHERE
+year = 2011 AND (author = 'Some Guy' OR author = 'Other Guy') >>.
+
+The constraints you provide for the attributes in the C<$or> array-ref are the
+same as when performing regular queries:
+
+	$coll->find({ '$or' => [ { author => { '$exists' => 1 } }, { guy_we_stole_this_from => { '$exists' => 1 } } ] })
+
+This will find documents that either have the 'author' attribute or the
+'guy_we_stole_this_from' attribute.
+
+=head3 QUERYING BY DOCUMENT NAME
+
+As previously mentioned, every document in a Giddy collection has a name. In case
+of a file-based document, this would be the file name (like 'index.html'). In case
+of a directory-based document, this would be the directory name (like 'blog-post').
+This name is the document's '_name' attribute, and you can query it like any
+other attribute:
+
+	$coll->find({ _name => 'index.html' }); # find documents named index.html (there can't be more than one)
+
+	$coll->find({ _name => qr/^index/ }); # find documents whose name starts with 'index' (definitely can be more than one)
+
+Searching I<only> by name is much faster than by any other attribute, since all
+Giddy has to do is match file/directory names, instead of loading (and deserializing)
+every document. Since this is very useful, Giddy provides a shortcut for finding
+documents by name:
+
+	$coll->find('index.html');
+	
+	$coll->find(qr/^index/);
+
+These two statements are equal to the previous two.
+
+Remember you can chain C<find()> queries if you find the need to. For example:
+
+	$coll->find({ _name => qr/^index/ })->find({ author => { '$exists' => 1 } });
+
+The first find() call returns a L<Giddy::Collection::InMemory> object. The second
+one is performed on that and returns an entirely new object.
+
+=head3 FAST DOCUMENT MATCHING WITH GREP
+
+Since querying with the C<find()> document is pretty slow (especially on large
+collections and when you're not querying only by name), Giddy provides another
+option which, although less useful, is much faster: the C<grep()> method can be
+used to find documents whose content matches a provided string. For example:
+
+	$coll->grep('Some Guy');
+
+This statement will find all documents that have the 'Some Guy' string I<anywhere>
+in them - this means attributes names, attribute values, anything.
+
+You can grep for multiple strings in a document easily:
+
+	$coll->grep(['Some Guy', 'Other Guy', 'Jeffery']);
+
+This will find documents that have all three strings in them (not necessarily at
+the same line). If you want to find documents that have at least one of the strings
+(i.e. perform an OR search), then pass the 'or' option to the method like so:
+
+	$coll->grep(['Some Guy', 'Other Guy', 'Jeffery'], { or => 1 });
+
+Just like the C<find()> method, C<grep()> returns an in-memory collection, so
+iterating over C<grep()> results is the same as iterating over C<find()> results.
+It also means that you can combine both types of queries, like so:
+
+	$coll->find({ _name => qr/^index/ })->grep('Some Guy');
+
+The grep method internally uses Git's C<git grep> command.
+
+=head3 I ONLY WANT ONE
+
+Like MongoDB, Giddy provides a shortcut for finding just one document. This is
+mostly helpful when searching by an exact document name, but knock yourself out:
+
+	my $doc = $coll->find_one({ _name => 'index.html' })
+		|| die "No index.html, oh my god, I have no idea what to do, redirecting you to google.com";
+
+This will attempt to find a document named 'index.html'. If it is found, it is
+returned in hash-ref format (more about loaded documents later on). If not,
+an undefined value is returned. The above call to C<find_one()> is the same as
+C<find_one('index.html')>, by the way.
+
+You can do the same thing with grep:
+
+	my $doc = $coll->grep_one('Some Guy');
+
+Both C<find_one()> and C<grep_one()> methods will always return the I<first>
+document they find (if any, of course). Which one this document will be depends
+on the sorting used. Sorting is discussed later on, but you should already know
+that by default, C<find()> and C<grep()> will sort documents alphabetically by
+name in ascending order.
+
+=head3 I WANT ALL DOCUMENTS
+
+If you want to get all the documents in a collection, just don't provide a query
+(or provide an empty string, an empty regex, or an empty hashref):
+
+	$coll->find();
+	$coll->find('');
+	$coll->find(qr//);
+	$coll->find({});
+
+All of these will match every document in the collection. Grep is just slightly
+different:
+
+	$coll->grep();
+	$coll->grep('');
+	$coll->grep([]);
+
+=head3 ITERATING OVER RESULTS
+
+When you have a collection object, either a pure L<Giddy::Collection> object or
+a L<Giddy::Collection::InMemory> object (which is the result of a C<find()> or
+C<grep()> query), then you can easily iterate over the matched documents. Every
+collection object has an internal iterator that points to the next document in
+the collection. When the collection object is first created, this iterator will
+point to the first document (if any). Like MongoDB, you go through the documents
+with the C<next()> method:
+
+	my $in_mem = $coll->find(qr/some_guy/);
+	while (my $doc = $in_mem->next) {
+		print "Found $doc->{_name}\n";
+	}
+
+As you can see, C<next()> will keep returning documents from the collection (and
+increasing the internal iterator), until no more documents are available. At any
+point, you can rewind the iterator to the beginning:
+
+	$in_mem->rewind; # now you can run C<next()> again
+
+You can also get all the documents found with just one command:
+
+	my @docs = $in_mem->all;
+
+The C<all()> method automatically rewinds the iterator when it reaches the end of
+the collection.
+
+If you only want to know whether the internal iterator has reached the end of the
+collection or not, use the C<has_next()> command:
+
+	while ($in_mem->has_next) {
+		my $doc = $in_mem->next;
+		print "Found $doc->{_name}\n";
+	}
+
+If you want to know how many documents are in the collection just use the C<count()>
+method.
+
+	print "\$coll has ", $coll->count," documents, and our query matched ", $in_mem->count," documents out of them.\n";
+
+Keep in mind though that, unlike MongoDB, you can't pass anything to the C<count()>
+method (well, you can, but it will be ignored) as a shortcut for querying and
+counting in one shot.
+
+Giddy also lets you easily get the first and last documents in the collection (more
+useful when sorting):
+
+	my $first_doc = $in_mem->first;
+	my $last_doc = $in_mem->last;
+
+It's important to note that calling these methods doesn't affect the internal
+iterator, or take it into consideration at all, so you can always call these methods.
+
+=head3 SORTING DOCUMENTS
+
+Sorting is fairly easy with Giddy, and quite similar to MongoDB. However, you can't
+sort I<while> running queries, only after them. By default, collections (both
+real ones and in-memory ones) will have their documents sorted alphabetically by
+name in ascending order. To sort them in a different order, you use the C<sort()>
+method, providing it with an even-numbered array-ref like so:
+
+	my $in_mem = $coll->find({ author => 'Some Guy' })->sort([date => -1, title => 1]);
+
+This will find documents whose author attribute equals 'Some Guy', and then sort
+the returned collection by the 'date' attribute in descending order (-1 means
+descending), and then by the 'title' attribute in ascending order (1 means
+ascending). The C<sort()> method simply returns the collection object, so you can
+chain it too:
+
+	$coll->find({ author => 'Some Guy' })->sort([date => -1, title => 1])->grep('Some String');
+
+A couple of things worth knowing when it comes to sorting:
+
+=over
+
+=item 1. If you query a collection only by name (or with C<grep()> and then attempt
+to sort by other attributes, Giddy will be forced to load all documents in the
+collection, making it much slower.
+
+=item 2. Just like any other of the iteration methods, you can sort real collections
+too, not just in-memory collections. So, for example:
+
+	my $coll = $db->get_collection('articles')->sort([date => -1]);
+
+This will give you a L<Giddy::Collection> object sorted descendingly by date.
+
+=back
+
+You can sort a collection as much as you want.
+
+=head3 FULL PATH FINDING
+
+Since Giddy is web-oriented, it might be useful for you search for documents that
+match a full path, disregarding whatever collection its in. For example, looking back
+at the example database structure from earlier in this manual, say we wanted to
+find the 'giddy_is_cool' document. We can use C<find()> on the database object
+like so:
+
+	my $doc = $db->find('/forum/general_topics/giddy_is_cool');
+
+This will essentially find the collection '/forum/general_topics' for you, and
+then run C<find('giddy_is_cool')> on it. You can still use C<find_one()> too, which
+is more appropriate in the above example.
+
+=head3 BINARY ATTRIBUTES
+
+Your documents can have binary attributes. For example, maybe you have a collection
+of articles, and every article has a little picture attached to it:
+
+	articles/
+		article-one/
+			attributes.yaml
+			picture.png
+		article-two/
+			attributes.yaml
+			picture.png
+
+Both 'article-one' and 'article-two' have the binary 'picture.png' attribute.
+
+Giddy's support for binary attributes is currently very limited. You can't create
+binary attributes with Giddy, you'd have to do that manually (i.e. by direct
+manipulation of the database's working copy), and you can't query by binary attributes
+(even for existance, for example).
+
+To make it clear, anything outside attributes.yaml is considered binary by Giddy,
+even if it's not.
+
+When Giddy loads a document, however, it will look for binary attributes, and if
+it finds any, it will add them to the document hash-ref, with their full paths as
+their value. So, loading 'article-one', for example, will look something like this:
+
+	{
+		'_name' => 'article-one',
+		'title' => 'Article One',
+		'author' => 'Some Guy',
+		'picture.png' => '/articles/article-one/picture.png',
+	}
+
+Giddy doesn't yet provide the ability to read the binary attribute, but will do
+so in upcoming versions.
+
+When querying for documents, you can tell Giddy to skip binary attributes by passing
+a hash-ref with the 'skip_binary' option to C<find()>:
+
+	my $in_mem = $coll->find({}, { skip_binary => 1 }); # get all documents, but don't look for binary attributes
+
+=head2 UPDATING DOCUMENTS
+
+Giddy implements MongoDB's update strategy almost completely. Apart from
+not yet supporting MongoDB's dot notation used to update sub-attributes
+(i.e. nested fields), almost all MongoDB's update operations are supported.
+
+Updating is performed with the C<update()> method. This method expects a query
+(exactly like C<find()>), an update object (which is a hash-ref of update operations,
+described later), and a hash-ref of options. The following options are currently
+supported:
+
+=over
+
+=item * skip_binary - See L</"BINARY ATTRIBUTES"> for info.
+
+=item * multiple - Update all documents you find, not just the first one.
+
+=item * upsert - If you don't find any document that matches the query, create one
+
+=back
+
+So, updating is performed by calling C<update()> like so:
+
+	$coll->update($query, $object, $options);
+
+You don't have to provide any options, but you have to provide a query (which may
+be an empty string or an empty hash-ref, useful when you want to update every
+document), and you must provide the update object.
+
+Now, let's look at the operations you can use in the update object:
+
+=over
+
+=item * C<$inc> - Increase the value of a numerical attribute (provide a negative value to decrease):
+
+	$coll->update({ number => { '$exists' => 1 } }, { '$inc' => { number => 3 } }, { multiple => 1 }); # increases the 'number' attribute of all documents that have it (and in which it is numerical) by three
+
+=item * C<$set> - Set the value for an attribute (creating it if necessary)
+
+	$coll->update({ number => { '$exists' => 0 } }, { '$set' => { number => 0 } }, { multiple => 1 });
+
+=item * C<$unset> - The opposite of C<$set>. This doesn't nullify an attribute but completely removes it
+
+=item * C<$push> - Pushes a value to an array attribute:
+
+	$coll->update({ numbers => { '$type' => 'array' } }, { '$push' => { numbers => 42 } }, { multiple => 1 });
+
+=item * C<$pushAll> - Pushes a list of values to an array attribute:
+
+	$coll->update({ numbers => { '$type' => 'array' } }, { '$pushAll' => { numbers => [42, 43, 44] } }, { multiple => 1 });
+
+=item * C<$addToSet> - Pushes a value to an array, unless it's already there.
+
+=item * C<$pop> - Removes an item for an array attribute (not from its end, you have to provide the index):
+
+	$coll->update({ numbers => { '$type' => 'array' } }, { '$pop' => { numbers => 0 } }, { multiple => 1 }); # remove the first item in the 'numbers' attribute
+
+=item * C<$rename> - Renames an attribute:
+
+	$coll->update('index.html', { '$rename' => { 'old_attribute_name' => 'new_attribute_name' } });
+
+=item * C<$pull> - Remove all occurrences of a specific value from an array attribute:
+
+	$coll->update('index.html', { '$pull' => { numbers => 42 } }); # Remove 42 for the 'numbers' attribute of 'index.html'
+
+=item * C<$pullAll> - Remove all occurrences of a list of specific values from an array attribute:
+
+	$coll->update('index.html', { '$pullAll' => { numbers => [42, 43, 45] } });
+
+=back
+
+The above update operations aren't the only way to update documents. If the update
+hash-ref doesn't have any of the above operations, then the hash-ref is considered
+the new document in its entirety. So, any document matched by the update query (more
+useful without the 'multiple' option) will have its content complete replaced by
+the update hash-ref.
+
+The output of the C<update()> command is a hash-ref with two keys: 'n' - holding
+the number of documents updated by the query (0 if none updated), and 'docs' -
+holding an array-ref with the names of all documents updated (empty if none).
+
+Giddy will automatically stage the documents updated (i.e. run C<git add> on them)
+after updating. As with C<insert()>, changes are not stored in the database until
+a commit is performed.
+
+One thing worth noting: when you're not using the 'multiple' option, Giddy will
+update the first document it finds. By default, documents are sorted alphabetically
+by name in ascending order. If you want to update the first document of a collection
+in a specific order, you'll have to sort the collection first with the C<sort()>
+method, and only the run the C<update()> command.
+
+=head2 DELETING DOCUMENTS
+
+Deleting documents from a collection is performed by the C<remove()> method. This
+method expects a query (exactly like C<find()>), and a hash-ref of options. Only
+one option is currectly recognized: 'just_one'. If passed a true value, C<remove()>
+will delete only the first document it matches. Otherwise, it will remove all documents
+matched. When using 'just_one', you should note that the identity of the first
+document depends on the sorting of the collection. By default, as said, the sorting
+is alphabetical by name (ascending). You can sort the collection before using
+C<remove()> with 'just_one' to remove the first document according to a different
+sorting. 
+
+The following examples explain how to use the C<remove()> method:
+
+	$coll->remove(); # remove every document in the collection (but not the collection itself)
+
+	$coll->remove('index.html'); # remove the 'index.html' document (if exists)
+
+	$coll->remove({ _name => 'index.html' }); # same as above
+
+	$coll->remove(qr/^index/); # remove documents whose name begins with 'index'
+
+	$coll->remove({ _name => qr/^index/ }); # same as above
+
+	$coll->remove({ author => 'Some Guy' }); # remove all documents by Some Guy
+
+	$coll->sort([date => -1])->remove({ author => 'Some Guy' }, { just_one => 1 }); # remove just the newest document by Some Guy
+
+Internally, the C<remove()> method deletes documents with Git's C<git rm> command.
+
+=head2 DROPPING COLLECTIONS
+
+Dropping collections is easy:
+
+	$coll->drop;
+
+This will completely remove the collection and all documents/files/subcollections
+in it. Internally, the drop command uses the C<git rm> command.
+
+=head2 COMMITING CHANGES
+
+After creating collections/documents, or basically making any kind of changes,
+you need to commit the changes for them to actually take effect. Commiting in Giddy
+is very simple. You don't have to stage files like you do with C<git add> when
+manipulating collections and documents, Giddy does that automatically for you.
+
+To commit, just use the C<commit()> method with a commit message on the database
+object:
+
+	$db->commit("Created some new documents and remove some old one");
+
+You don't have to provide a commit message, but do yourself a favor and do so. If
+you don't provide one, Giddy will use a commit message like "Commited 5 changes".
+
+If for some reason you need to (for example for adding binary attributes), you can
+manually stage files with the C<mark()> method:
+
+	$db->mark('/index.html', '/collection/article.html', '/collection/some_document_directory');
+
+=head2 UNDOING STUFF
+
+Thanks to Git, you can easily undo changes (i.e. commits) you perform. Like Git,
+Giddy provides two ways for that: The first is completely erasing commits (like
+Git's C<git reset --hard> command) with the C<undo()> command:
+
+	$db->undo;
+
+This will erase the last commit perfomed, returning the database to its previous
+state as if the commit never happened. Any documents created in that commit will
+vanish, and documents removed by that commit will reappear, and any updates will
+be lost.
+
+You can undo more than one commits by providing a positive integer:
+
+	$db->undo(1); # erase everything from the previous commit on (i.e. the last two commits)
+
+	$db->undo(3); # erase the last four commits
+
+You can also explicitly tell Giddy which commit to undo by providing its SHA-1 checksum:
+
+	$db->undo('ed1721e4a44d24c8eefbf0ea420ff19472a3f08c');
+
+The second way of undoing is reverting (Git's C<git revert> command). Here, you
+tell Giddy to take a certain commit performed in the past, clone the database snapshot
+from that commit, and re-commit it as the new state of the database. This way,
+the commits performed between the source commit and the new cloned commit are
+preserved. To revert a commit, you tell Giddy the number (or SHA-1 checksum) of the commit
+performed I<just after> the commit you wish to revert to. This may be confusing,
+but that is how Git's C<revert> command works.
+
+	$db->revert(); # Will revert the latest commit and clone the commit before it
+
+	$db->revert(1); # will revert the two latest commits
+
+	$db->revert('ed1721e4a44d24c8eefbf0ea420ff19472a3f08c'); # revert a specific commit
+
+Please note that reverting will fail if the database's working directory isn't
+clean (i.e. uncommited changes has been performed prior to calling C<revert()>).
+
+=head2 KNOW THY HISTORY
+
+Using a Git-based database, you'd probaby like to put Git's history examining
+capabilities into good use. In Git, you do this with the C<git log> command and
+its relatives. In Giddy, you use the C<log()> method on the database object:
+
+	my $log = $db->log;
+
+This returns a L<Git::Repository::Log::Iterator> object that starts with the latest
+commit (known as HEAD). See the documentation for that module for more information.
+
+If you want information on a specific commit, you can pass an integer (starting with
+zero) identifying the commit's number (latest commit is zero):
+
+	my $commit_info = $db->log(0); # info for latest commit (HEAD or HEAD~0 in git syntax)
+	$commit_info = $db->log(10); # info for the "10th ago commit" (HEAD~10 in git syntax)
+
+This returns a L<Git::Repository::Log> object.
+
+Unfortunately, you can't get a commit info by the commit checksum yet. Hopefully future
+versions will support this.
+
+=head2 DROPPING A DATABASE
+
+Not supported yet.
+
+=head1 WHAT'S NEXT?
+
+I don't know. Pray that it works.

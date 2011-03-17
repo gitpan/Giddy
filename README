@@ -1,0 +1,106 @@
+NAME
+    Giddy - Schema-less, versioned media/document database based on Git.
+
+VERSION
+    version 0.01
+
+SYNOPSIS
+            use Giddy;
+
+            my $giddy = Giddy->new;
+
+            my $db = $giddy->get_database('/path/to/database');
+
+DESCRIPTION
+    WARNING: THIS IS ALPHA SOFTWARE, RELEASED FOR TESTING PURPOSES ONLY. DO
+    NOT USE IT ON A PRODUCTION ENVIRONMENT YET. IT'S INCOMPLETE, BUG-RIDDEN,
+    AND WILL RUN OVER YOUR CAT.
+
+    Giddy is a schema-less (as in NoSQL), versioned database system built on
+    top of Git. A database in Giddy is simply a Git repository, providing
+    the database with automatic, comprehensive versioning and distributive
+    capabilities.
+
+    As opposed to most modern database systems, Giddy aims to be human
+    editable. One can create/edit/delete database entries with nothing but a
+    text editor and some simple git commands (YAML has been chosen as the
+    serialization format since YAML is well suited as a human editable
+    format; however, JSON support is planned). This module provides an API
+    for usage by Perl applications.
+
+    Main database features (not all features implemented yet):
+
+    *   Human editable
+
+    *   Multiple version concurrency
+
+    *   Concurrent transactions
+
+    *   Distributed peers
+
+    *   Disconnected operation
+
+    *   Consistent UTF-8 encoding
+
+    *   Other fancy words
+
+    STOP: This document (and all other module documentation provided with
+    the distribution) are for reference purposes only. Please read
+    Giddy::Manual before using Giddy to learn about the database system and
+    how to use it.
+
+CLASS METHODS
+  new()
+    Creates a new instance of this module.
+
+OBJECT METHODS
+  get_database( $path )
+    Returns a Giddy::Database object tied to a Git repository located on the
+    file system. Please provide full path names to prevent potential
+    problems.
+
+    If the path doesn't exist, Giddy will attempt to create it and
+    initialize it as a Git repository.
+
+AUTHOR
+    Ido Perlmuter, "<ido at ido50.net>"
+
+BUGS
+    Please report any bugs or feature requests to "bug-giddy at
+    rt.cpan.org", or through the web interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Giddy>. I will be
+    notified, and then you'll automatically be notified of progress on your
+    bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+            perldoc Giddy
+
+    You can also look for information at:
+
+    *   RT: CPAN's request tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Giddy>
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/Giddy>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/Giddy>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/Giddy/>
+
+LICENSE AND COPYRIGHT
+    Copyright 2011 Ido Perlmuter.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either: the GNU General Public License as published
+    by the Free Software Foundation; or the Artistic License.
+
+    See http://dev.perl.org/licenses/ for more information.
+
