@@ -1,6 +1,7 @@
 package Giddy;
+
 BEGIN {
-  $Giddy::VERSION = '0.01';
+	use version 0.77; our $VERSION = version->declare("v0.11.0");
 }
 
 # ABSTRACT: Schema-less, versioned media/document database based on Git.
@@ -18,7 +19,7 @@ Giddy - Schema-less, versioned media/document database based on Git.
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 

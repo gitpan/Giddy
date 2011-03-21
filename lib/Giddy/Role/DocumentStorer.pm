@@ -1,7 +1,4 @@
 package Giddy::Role::DocumentStorer;
-BEGIN {
-  $Giddy::Role::DocumentStorer::VERSION = '0.01';
-}
 
 use Any::Moose 'Role';
 use namespace::autoclean;
@@ -21,7 +18,7 @@ Giddy::Role::DocumentStorer - Provides document storing for Giddy::Collection
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 

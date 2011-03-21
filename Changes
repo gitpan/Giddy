@@ -1,4 +1,8 @@
 Revision history for Giddy
 
+v0.11.0   2011-03-22 00:38:52 Asia/Jerusalem
+	- Fixed bug with empty-expression greps
+	- Moved to version objects
+
 0.01      2011-03-18 01:00:06 Asia/Jerusalem
 	- Initial release

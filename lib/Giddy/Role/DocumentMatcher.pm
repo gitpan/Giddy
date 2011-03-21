@@ -1,7 +1,4 @@
 package Giddy::Role::DocumentMatcher;
-BEGIN {
-  $Giddy::Role::DocumentMatcher::VERSION = '0.01';
-}
 
 use Any::Moose 'Role';
 use namespace::autoclean;
@@ -18,7 +15,7 @@ Giddy::Role::DocumentMatcher - Provides query parsing and document matching for 
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 

@@ -1,7 +1,4 @@
 package Giddy::Collection;
-BEGIN {
-  $Giddy::Collection::VERSION = '0.01';
-}
 
 # ABSTRACT: A Giddy collection.
 
@@ -31,7 +28,7 @@ Giddy::Collection - A Giddy collection.
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 
@@ -196,7 +193,7 @@ sub grep {
 			push(@cmd, '-e', $_);
 		}
 	} else {
-		push(@cmd, '-e', '');
+		push(@cmd, '');
 	}
 
 	push(@cmd, { cwd => File::Spec->catdir($self->_database->_repo->work_tree, $self->_spath) }) if $self->_spath;

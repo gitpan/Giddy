@@ -1,7 +1,4 @@
 package Giddy::Role::DocumentLoader;
-BEGIN {
-  $Giddy::Role::DocumentLoader::VERSION = '0.01';
-}
 
 use Any::Moose 'Role';
 use namespace::autoclean;
@@ -19,7 +16,7 @@ Giddy::Role::DocumentLoader - Provides document loading methods for Giddy::Colle
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 

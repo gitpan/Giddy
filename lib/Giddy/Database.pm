@@ -1,7 +1,4 @@
 package Giddy::Database;
-BEGIN {
-  $Giddy::Database::VERSION = '0.01';
-}
 
 # ABSTRACT: A Giddy database.
 
@@ -20,7 +17,7 @@ Giddy::Database - A Giddy database.
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 

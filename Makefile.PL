@@ -18,7 +18,8 @@ my %WriteMakefileArgs = (
     'utf8' => '0'
   },
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+    'ExtUtils::MakeMaker' => '6.31',
+    'version' => '0.77'
   },
   'DISTNAME' => 'Giddy',
   'EXE_FILES' => [],
@@ -40,9 +41,10 @@ my %WriteMakefileArgs = (
     'Tie::IxHash' => '0',
     'Try::Tiny' => '0',
     'YAML::XS' => '0',
-    'namespace::autoclean' => '0'
+    'namespace::autoclean' => '0',
+    'version' => '0.77'
   },
-  'VERSION' => '0.01',
+  'VERSION' => 'v0.11.0',
   'test' => {
     'TESTS' => 't/*.t'
   }

@@ -1,7 +1,4 @@
 package Giddy::Collection::InMemory;
-BEGIN {
-  $Giddy::Collection::InMemory::VERSION = '0.01';
-}
 
 # ABSTRACT: An in-memory collection (result of queries).
 
@@ -16,7 +13,7 @@ Giddy::Collection::InMemory - An in-memory collection (result of queries).
 
 =head1 VERSION
 
-version 0.01
+version v0.11.0
 
 =head1 SYNOPSIS
 
