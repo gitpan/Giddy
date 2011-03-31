@@ -4,7 +4,7 @@
       "Ido Perlmuter <ido@ido50.net>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.102160",
+   "generated_by" : "Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.110580",
    "license" : [
       "perl_5"
    ],
@@ -16,8 +16,7 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.31",
-            "version" : "0.77"
+            "ExtUtils::MakeMaker" : "6.31"
          }
       },
       "runtime" : {
@@ -27,19 +26,15 @@
             "Data::Compare" : 0,
             "DateTime::Format::W3CDTF" : 0,
             "Encode" : 0,
-            "Fcntl" : 0,
             "File::Path" : 0,
-            "File::Spec" : 0,
-            "File::Util" : 0,
             "Git::Repository" : 0,
             "Git::Repository::Log::Iterator" : 0,
-            "Path::Abstract" : 0,
+            "IO::File" : 0,
             "Tie::IxHash" : 0,
             "Try::Tiny" : 0,
             "YAML::XS" : 0,
             "namespace::autoclean" : 0,
-            "perl" : "5.008",
-            "version" : "0.77"
+            "perl" : "5.008"
          }
       },
       "test" : {
@@ -51,7 +46,15 @@
          }
       }
    },
-   "release_status" : "stable",
-   "version" : "v0.11.0"
+   "release_status" : "testing",
+   "resources" : {
+      "homepage" : "http://github.com/ido50/Giddy/tree",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/ido50/Giddy.git",
+         "web" : "http://github.com/ido50/Giddy/tree"
+      }
+   },
+   "version" : "0.012_001"
 }
 

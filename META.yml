@@ -9,9 +9,8 @@ build_requires:
   utf8: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.31
-  version: 0.77
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.102160'
+generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.110580'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,17 +22,16 @@ requires:
   Data::Compare: 0
   DateTime::Format::W3CDTF: 0
   Encode: 0
-  Fcntl: 0
   File::Path: 0
-  File::Spec: 0
-  File::Util: 0
   Git::Repository: 0
   Git::Repository::Log::Iterator: 0
-  Path::Abstract: 0
+  IO::File: 0
   Tie::IxHash: 0
   Try::Tiny: 0
   YAML::XS: 0
   namespace::autoclean: 0
   perl: 5.008
-  version: 0.77
-version: v0.11.0
+resources:
+  homepage: http://github.com/ido50/Giddy/tree
+  repository: git://github.com/ido50/Giddy.git
+version: 0.012_001

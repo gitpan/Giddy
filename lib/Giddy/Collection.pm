@@ -6,14 +6,18 @@ use Any::Moose;
 use namespace::autoclean;
 
 use Carp;
-use File::Spec;
-use File::Util;
 use Giddy::Collection::InMemory;
+use Giddy::StaticDirectory;
 use Tie::IxHash;
 
-has 'path' => (is => 'ro', isa => 'Str', default => '/');
+our $VERSION = "0.012_001";
+$VERSION = eval $VERSION;
 
-has '_database' => (is => 'ro', isa => 'Giddy::Database', required => 1);
+has 'path' => (is => 'ro', isa => 'Str', default => '');
+
+has 'db' => (is => 'ro', isa => 'Giddy::Database', required => 1);
+
+has 'cached' => (is => 'ro', isa => 'Bool', builder => '_build_cached');
 
 has '_loc' => (is => 'ro', isa => 'Int', default => 0, writer => '_set_loc');
 
@@ -28,7 +32,7 @@ Giddy::Collection - A Giddy collection.
 
 =head1 VERSION
 
-version v0.11.0
+version 0.012_001
 
 =head1 SYNOPSIS
 
@@ -45,16 +49,29 @@ this class' objects. The class provides methods for finding documents, creating
 documents, updating documents, removing documents, iterating over query results,
 etc.
 
+=head1 CONSUMES
+
+L<Giddy::Role::DocumentLoader>
+L<Giddy::Role::DocumentMatcher>
+L<Giddy::Role::DocumentStorer>
+L<Giddy::Role::DocumentUpdater>
+
 =head1 ATTRIBUTES
 
 =head2 path
 
-The relative path of the collection. Defaults to '/', which is the root
-directory of the database. Always has a starting slash.
+The relative path of the collection. Defaults to the empty string (''), which is
+the root directory of the database. Never has a starting slash.
 
-=head2 _database
+=head2 db
 
 The L<Giddy::Database> object the collection belongs to. Required.
+
+=head2 cached
+
+Holds a boolean value indicating whether the collection exists in the database
+index (i.e. has already been staged and commited), or isn't (i.e. a new one).
+Automatically calculated.
 
 =head2 _loc
 
@@ -114,7 +131,7 @@ sub find {
 	# stage 1: create an in-memory collection
 	my $coll = Giddy::Collection::InMemory->new(
 		path => $self->path,
-		_database => $self->_database,
+		db => $self->db,
 		_query => { find => $query, coll => $self, opts => $opts },
 		_documents => $self->_documents
 	);
@@ -179,41 +196,39 @@ sub grep {
 	$query = [$query] if !ref $query;
 	$opts ||= {};
 
+	return $self->find('', $opts) unless scalar @$query;
+
 	my $coll = Giddy::Collection::InMemory->new(
 		path => $self->path,
-		_database => $self->_database,
+		db => $self->db,
 		_query => { grep => $query, coll => $self, opts => $opts }
 	);
 
 	my @cmd = ('grep', '-I', '--name-only', '--max-depth', 1, '--cached');
 	push(@cmd, '--all-match') unless $opts->{'or'}; # that's how we do an 'and' search'
 
-	if (scalar @$query) {
-		foreach (@$query) {
-			push(@cmd, '-e', $_);
-		}
-	} else {
-		push(@cmd, '');
+	foreach (@$query) {
+		push(@cmd, '-e', $_);
 	}
 
-	push(@cmd, { cwd => File::Spec->catdir($self->_database->_repo->work_tree, $self->_spath) }) if $self->_spath;
+	push(@cmd, { cwd => $self->db->_repo->work_tree.'/'.$self->path })
+		if $self->path;
 
 	my $docs = Tie::IxHash->new;
-	foreach ($self->_database->_repo->run(@cmd)) {
-		if (m!/!) {
-			my $path = File::Spec->catdir($self->path, $`);
+	foreach ($self->db->_repo->run(@cmd)) {
+		if (m!/!) { # there'll at most be one slash since --max-depth is 1
+			my $name = $`;
 			# if this is an in-memory collection, we have to ignore
 			# documents in the actual filesystem collection but not here
-			next unless $self->_documents->EXISTS($path);
-			next if $docs->EXISTS($path);
-			$docs->STORE($path => 'dir');
+			next unless $self->_documents->EXISTS($name);
+			next if $docs->EXISTS($name);
+			$docs->STORE($name => 'dir');
 		} else {
-			my $path = File::Spec->catfile($self->path, $_);
 			# if this is an in-memory collection, we have to ignore
 			# documents in the actual filesystem collection but not here
-			next unless $self->_documents->EXISTS($path);
-			next if $docs->EXISTS($path);
-			$docs->STORE($path => 'file');
+			next unless $self->_documents->EXISTS($_);
+			next if $docs->EXISTS($_);
+			$docs->STORE($_ => 'file');
 		}
 	}
 
@@ -266,10 +281,10 @@ sub insert {
 	return ($self->batch_insert([$filename => $attrs]))[0];
 }
 
-=head3 batch_insert( [ $path1 => \%attrs1, $path2 => \%attrs2, ... ] )
+=head3 batch_insert( [ $name1 => \%attrs1, $name2 => \%attrs2, ... ] )
 
-Inserts a series of documents one after another. Returns a list of all document
-paths created. If even one document cannot be created (mostly since a similarly
+Inserts a series of documents one after another. Returns a list with the names of
+all documents created. If even one document cannot be created (mostly since a similarly
 named document/collection already exists), none will be created.
 
 =cut
@@ -293,26 +308,21 @@ sub batch_insert {
 		croak "You must provide document ${filename}'s attributes as a hash-ref."
 			unless $attrs && ref $attrs eq 'HASH';
 
-		if (exists $attrs->{_body}) {
-			croak "A document called $filename already exists."
-				if -e File::Spec->catfile($self->_database->_repo->work_tree, $self->_spath, $filename);
-		} else {
-			croak "A document called $filename already exists."
-				if -e File::Spec->catdir($self->_database->_repo->work_tree, $self->_spath, $filename);
-		}
+		croak "A document called $filename already exists."
+			if $self->cached && $self->db->_path_exists($self->_path_to($filename));
 	}
 
-	my @paths; # will hold paths of all documents created
+	my @names; # will hold names of all documents created
 
 	# store the documents in the filesystem
 	foreach my $filename ($hash->Keys) {
 		$self->_store_document($filename, $hash->FETCH($filename));
 
 		# return the document's path
-		push(@paths, File::Spec->catdir($self->path, $filename));
+		push(@names, $filename);
 	}
 
-	return @paths;
+	return @names;
 }
 
 =head3 update( $name, \%object, [ \%options ] )
@@ -421,30 +431,12 @@ sub remove {
 	# delete them, so I'm gonna just iterate through the cursor's
 	# _documents array:
 	foreach ($options->{just_one} && $cursor->count ? ($cursor->_documents->Keys(0)) : $cursor->count ? $cursor->_documents->Keys : ()) {
-		my $t = $cursor->_documents->FETCH($_);
-		if ($t eq 'file') {
-			# get the file's name and search path
-			my $spath = (m!^/(.+)$!)[0];
-			my $name  = (m!/([^/]+)$!)[0];
-			
-			# remove the file
-			$self->_database->_repo->run('rm', '-f', $spath);
+		# remove the document
+		$self->db->_repo->run('rm', '-r', '-f', $_); # the -r switch is here in case this is a document directory
 
-			# add some info about this deletion
-			$deleted->{n} += 1;
-			push(@{$deleted->{docs}}, $name);
-		} elsif ($t eq 'dir') {
-			# get the document's name and search path
-			my $spath = (m!^/(.+)$!)[0];
-			my $name  = (m!/([^/]+)$!)[0];
-
-			# remove the document
-			$self->_database->_repo->run('rm', '-r', '-f', $spath);
-
-			# add some info about this deletion
-			$deleted->{n} += 1;
-			push(@{$deleted->{docs}}, $name);
-		}
+		# add some info about this deletion
+		$deleted->{n} += 1;
+		push(@{$deleted->{docs}}, $_);
 	}
 
 	return $deleted;
@@ -675,6 +667,83 @@ sub last {
 
 =head2 COLLECTION OPERATIONS
 
+=head3 get_parent()
+
+Returns a L<Giddy::Collection> object tied to the parent collection of the collection.
+If this method is called on the root collection, C<undef> will be returned.
+
+=cut
+
+sub get_parent {
+	my $self = shift;
+
+	return unless $self->path;
+
+	return $self->db->get_collection($self->db->_up($self->path));
+}
+
+=head3 get_collection( $name )
+
+Returns a L<Giddy::Collection> object tied to a child-collection named C<$name>.
+If the collection does not exist, it will be created. If C<$name> exists in the
+collection, but isn't a child collection, this method will croak. C<$name> must
+not start with a slash.
+
+=cut
+
+sub get_collection {
+	my ($self, $name) = @_;
+
+	croak "You must provide the name of the child-collection to get."
+		unless $name;
+
+	return $self->db->get_collection($self->_path_to($name));
+}
+
+=head3 list_static_dirs()
+
+Returns a list of all the static-file directories in the collection (if any).
+
+=cut
+
+sub list_static_dirs {
+	my $self = shift;
+
+	return map { $self->db->_is_static_dir($self->_path_to($_)) } $self->db->_list_dirs($self->path);
+}
+
+=head3 get_static_dir( $name )
+
+Returns a L<Giddy::StaticDirectory> object for a directory of static files named
+C<$name>, residing in the collection's directory. If the directory does not exist,
+it will be created and marked as a static directory with an empty '.static' file.
+If the directory exists but is not a static directory (or a file named C<$name>
+exists), this method will croak.
+
+=cut
+
+sub get_static_dir {
+	my ($self, $path) = @_;
+
+	croak "You must provide the name of the static directory to load."
+		unless $path;
+
+	my $fpath = $self->_path_to($path);
+
+	# try to find such a directory
+	if ($self->db->_path_exists($fpath)) {
+		croak "Path $fpath already exists but isn't a static-file directory."
+			unless $self->db->_is_static_dir($fpath);
+	} else {
+		# okay, let's create the directory
+		$self->db->_create_dir($fpath);
+		$self->db->_mark_dir_as_static($fpath);
+		$self->db->stage($fpath);
+	}
+
+	return Giddy::StaticDirectory->new(path => $fpath, coll => $self);
+}
+
 =head3 drop()
 
 Removes the collection from the database. Will not work (and croak) on
@@ -687,22 +756,14 @@ sub drop {
 	my $self = shift;
 
 	croak "You cannot drop the root collection."
-		if $self->path eq '/';
+		if $self->path eq '';
 
-	$self->_database->_repo->run('rm', '-r', '-f', $self->_spath);
+	$self->db->_repo->run('rm', '-r', '-f', $self->path);
 }
 
 =head1 INTERNAL METHODS
 
 The following methods are only to be used internally.
-
-=head2 _spath()
-
-=cut
-
-sub _spath {
-	($_[0]->path =~ m!^/(.+)$!)[0];
-}
 
 =head2 _documents()
 
@@ -714,21 +775,14 @@ sub _documents {
 	my $self = shift;
 
 	my $docs = Tie::IxHash->new;
-	foreach (sort $self->_database->_repo->run('ls-tree', '--name-only', $self->_spath ? 'HEAD:'.$self->_spath : 'HEAD:')) {
-		my $full_path = File::Spec->catfile($self->path, $_);
-		my $search_path = ($full_path =~ m!^/(.+)$!)[0];
+	foreach ($self->db->_list_contents($self->path)) {
+		my $full_path = $self->_path_to($_);
 
-		# what is the type of this thing?
-		my $t = $self->_database->_repo->run('cat-file', '-t', "HEAD:$search_path");
-		if ($t eq 'tree') {
-			# this is either a collection or a document
-			if (grep {/^attributes\.yaml$/} $self->_database->_repo->run('ls-tree', '--name-only', "HEAD:$search_path")) {
-				# great, this is a document directory, let's add it
-				$docs->STORE($full_path => 'dir');
-			}
-		} elsif ($t eq 'blob') {
-			# cool, this is a document file
-			$docs->STORE($full_path => 'file');
+		# we're only looking for document directories and document files
+		if ($self->db->_is_directory($full_path) && $self->db->_is_document_dir($full_path)) {
+			$docs->STORE($_ => 'dir');
+		} elsif ($self->db->_is_file($full_path)) {
+			$docs->STORE($_ => 'file');
 		}
 	}
 
@@ -754,21 +808,47 @@ sub _load_document {
 
 	return unless $index >= 0 && $index < $self->count;
 
-	my $path = $self->_documents->Keys($index);
-	if (exists $self->_loaded->{$path}) {
-		return $self->_loaded->{$path};
+	my $name = $self->_documents->Keys($index);
+	if (exists $self->_loaded->{$name}) {
+		return $self->_loaded->{$name};
 	} else {
-		my $t = $self->_documents->FETCH($path);
+		my $t = $self->_documents->FETCH($name);
 		my $doc;
 		if ($t eq 'file') {
-			$doc = $self->_query->{coll}->_load_document_file($path);
+			$doc = $self->_query->{coll}->_load_document_file($name);
 		} elsif ($t eq 'dir') {
-			$doc = $self->_query->{coll}->_load_document_dir($path, $self->_query->{opts}->{skip_binary});
+			$doc = $self->_query->{coll}->_load_document_dir($name, $self->_query->{opts}->{skip_binary});
 		}
-		croak "Failed to load document $path." unless $doc;
-		$self->_loaded->{$path} = $doc;
+		croak "Failed to load document $name." unless $doc;
+		$self->_loaded->{$name} = $doc;
 		return $doc;
 	}
+}
+
+=head2 _path_to( @names )
+
+Returns an internal path created by joining the collection's path and
+everything in C<@names> with '/' as a separator. If the collection is the root
+collection (and thus has the empty path) than this method will behave correctly
+and not return a string that starts with a slash.
+
+=cut
+
+sub _path_to {
+	my ($self, @names) = @_;
+
+	unshift(@names, $self->path) if $self->path;
+	return join('/', @names);
+}
+
+=head2 _build_cached()
+
+=cut
+
+sub _build_cached {
+	my $self = shift;
+
+	return $self->db->_path_exists($self->path) ? 1 : 0;
 }
 
 =head1 AUTHOR

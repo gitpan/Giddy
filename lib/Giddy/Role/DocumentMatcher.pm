@@ -6,8 +6,13 @@ use namespace::autoclean;
 use Carp;
 use Data::Compare;
 use DateTime::Format::W3CDTF;
-use Path::Abstract qw/--no_0_093_warning/;
 use Try::Tiny;
+
+our $VERSION = "0.012_001";
+$VERSION = eval $VERSION;
+
+requires '_documents';
+requires '_load_document';
 
 =head1 NAME
 
@@ -15,7 +20,7 @@ Giddy::Role::DocumentMatcher - Provides query parsing and document matching for 
 
 =head1 VERSION
 
-version v0.11.0
+version 0.012_001
 
 =head1 SYNOPSIS
 
@@ -24,6 +29,8 @@ version v0.11.0
 =head1 DESCRIPTION
 
 This role provides document matching capabilities to L<Giddy::Collection> and L<Giddy::Collection::InMemory>.
+
+Requires the '_documents' and '_load_document' attributes/methods to be implemented by consuming classes.
 
 =head1 METHODS
 
@@ -42,11 +49,8 @@ sub _match_by_name {
 
 	my $docs = Tie::IxHash->new;
 	foreach ($self->_documents->Keys) {
-		my $t = $self->_documents->FETCH($_);
-		my $doc_path = Path::Abstract->new($_);
-		my $doc_name = $doc_path->last;
-		$docs->STORE($_ => $t)
-			if $self->_attribute_matches({ _name => $doc_name }, '_name', $name);
+		$docs->STORE($_ => $self->_documents->FETCH($_))
+			if $self->_attribute_matches({ _name => $_ }, '_name', $name);
 	}
 
 	$docs->SortByKey;
@@ -65,7 +69,7 @@ sub _match_by_query {
 	$opts ||= {};
 
 	# return all documents if we don't really have a query
-	scalar keys %$query == 0 && $self->_documents;
+	scalar keys %$query == 0 && return $self->_documents;
 
 	my $docs = Tie::IxHash->new;
 	my $loaded = {};

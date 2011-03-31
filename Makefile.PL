@@ -18,8 +18,7 @@ my %WriteMakefileArgs = (
     'utf8' => '0'
   },
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31',
-    'version' => '0.77'
+    'ExtUtils::MakeMaker' => '6.31'
   },
   'DISTNAME' => 'Giddy',
   'EXE_FILES' => [],
@@ -31,20 +30,16 @@ my %WriteMakefileArgs = (
     'Data::Compare' => '0',
     'DateTime::Format::W3CDTF' => '0',
     'Encode' => '0',
-    'Fcntl' => '0',
     'File::Path' => '0',
-    'File::Spec' => '0',
-    'File::Util' => '0',
     'Git::Repository' => '0',
     'Git::Repository::Log::Iterator' => '0',
-    'Path::Abstract' => '0',
+    'IO::File' => '0',
     'Tie::IxHash' => '0',
     'Try::Tiny' => '0',
     'YAML::XS' => '0',
-    'namespace::autoclean' => '0',
-    'version' => '0.77'
+    'namespace::autoclean' => '0'
   },
-  'VERSION' => 'v0.11.0',
+  'VERSION' => '0.012_001',
   'test' => {
     'TESTS' => 't/*.t'
   }

@@ -18,6 +18,9 @@ lib/Giddy/Role/DocumentLoader.pm
 lib/Giddy/Role/DocumentMatcher.pm
 lib/Giddy/Role/DocumentStorer.pm
 lib/Giddy/Role/DocumentUpdater.pm
+lib/Giddy/Role/PathAnalyzer.pm
+lib/Giddy/Role/PathMaker.pm
+lib/Giddy/StaticDirectory.pm
 t/00-load.t
 t/01-cached.t
 t/release-dist-manifest.t
