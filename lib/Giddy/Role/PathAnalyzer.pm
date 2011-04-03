@@ -3,7 +3,7 @@ package Giddy::Role::PathAnalyzer;
 use Any::Moose 'Role';
 use namespace::autoclean;
 
-our $VERSION = "0.012_001";
+our $VERSION = "0.012_002";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -12,7 +12,7 @@ Giddy::Role::PathAnalyzer - Provides common path analysis methods to Giddy::Data
 
 =head1 VERSION
 
-version 0.012_001
+version 0.012_002
 
 =head1 SYNOPSIS
 
@@ -52,7 +52,7 @@ Returns a list of all static files in the directory. Assumes C<$path> is a direc
 sub _list_files {
 	my ($self, $path) = @_;
 
-	return map { $self->_is_file($path.'/'.$_) } $self->_list_contents($path);
+	return grep { $self->_is_file($path.'/'.$_) } $self->_list_contents($path);
 }
 
 =head2 _list_dirs( $path )
@@ -64,7 +64,7 @@ Returns a list of all child directories in the directory. Assumes C<$path> is a 
 sub _list_dirs {
 	my ($self, $path) = @_;
 
-	return map { $self->_is_directory($path.'/'.$_) } $self->_list_contents($path);
+	return grep { $self->_is_directory($path.'/'.$_) } $self->_list_contents($path);
 }
 
 =head2 _read_content( $path )

@@ -34,4 +34,4 @@ requires:
 resources:
   homepage: http://github.com/ido50/Giddy/tree
   repository: git://github.com/ido50/Giddy.git
-version: 0.012_001
+version: 0.012_002

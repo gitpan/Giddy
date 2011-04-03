@@ -10,7 +10,7 @@ use Git::Repository;
 use Git::Repository::Log::Iterator;
 use Giddy::Collection;
 
-our $VERSION = "0.012_001";
+our $VERSION = "0.012_002";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -19,7 +19,7 @@ Giddy::Database - A Giddy database.
 
 =head1 VERSION
 
-version 0.012_001
+version 0.012_002
 
 =head1 SYNOPSIS
 

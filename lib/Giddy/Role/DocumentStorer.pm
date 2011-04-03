@@ -6,7 +6,7 @@ use namespace::autoclean;
 use Carp;
 use YAML::XS;
 
-our $VERSION = "0.012_001";
+our $VERSION = "0.012_002";
 $VERSION = eval $VERSION;
 
 requires 'db';
@@ -18,7 +18,7 @@ Giddy::Role::DocumentStorer - Provides document storing for Giddy::Collection
 
 =head1 VERSION
 
-version 0.012_001
+version 0.012_002
 
 =head1 SYNOPSIS
 

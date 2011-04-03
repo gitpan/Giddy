@@ -8,7 +8,7 @@ use Data::Compare;
 use DateTime::Format::W3CDTF;
 use Try::Tiny;
 
-our $VERSION = "0.012_001";
+our $VERSION = "0.012_002";
 $VERSION = eval $VERSION;
 
 requires '_documents';
@@ -20,7 +20,7 @@ Giddy::Role::DocumentMatcher - Provides query parsing and document matching for 
 
 =head1 VERSION
 
-version 0.012_001
+version 0.012_002
 
 =head1 SYNOPSIS
 
