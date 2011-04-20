@@ -8,7 +8,7 @@ use namespace::autoclean;
 use Carp;
 use IO::File;
 
-our $VERSION = "0.012_002";
+our $VERSION = "0.012_003";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -17,7 +17,7 @@ Giddy::StaticDirectory - A Giddy directory of static files.
 
 =head1 VERSION
 
-version 0.012_002
+version 0.012_003
 
 =head1 SYNOPSIS
 

@@ -6,9 +6,10 @@ use Any::Moose;
 use namespace::autoclean;
 
 use Carp;
+use Git::Repository 1.18;
 use Giddy::Database;
 
-our $VERSION = "0.012_002";
+our $VERSION = "0.012_003";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -17,7 +18,7 @@ Giddy - Schema-less, versioned media/document database based on Git.
 
 =head1 VERSION
 
-version 0.012_002
+version 0.012_003
 
 =head1 SYNOPSIS
 
@@ -25,7 +26,7 @@ version 0.012_002
 
 	my $giddy = Giddy->new;
 
-	my $db = $giddy->getdb('/path/to/database');
+	my $db = $giddy->get_database('/path/to/database');
 
 =head1 DESCRIPTION
 
@@ -102,8 +103,10 @@ sub get_database {
 		# existing
 		return Giddy::Database->new(_repo => Git::Repository->new(work_tree => $path));
 	} else {
-		# new one
-		my $db = Giddy::Database->new(_repo => Git::Repository->create(init => $path));
+		# new one, let's create the repository's directory
+		Git::Repository->run('init', $path)
+			|| croak "Failed creating new Giddy repository, please check provided path is valid and that you have appropriate permissions to create the repository.";
+		my $db = Giddy::Database->new(_repo => Git::Repository->new(work_tree => $path));
 		
 		# create an empty .giddy file, stage it and commit, so our database will be "live"
 		$db->_touch('.giddy');

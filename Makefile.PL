@@ -31,7 +31,7 @@ my %WriteMakefileArgs = (
     'DateTime::Format::W3CDTF' => '0',
     'Encode' => '0',
     'File::Path' => '0',
-    'Git::Repository' => '0',
+    'Git::Repository' => '1.18',
     'Git::Repository::Log::Iterator' => '0',
     'IO::File' => '0',
     'Tie::IxHash' => '0',
@@ -39,7 +39,7 @@ my %WriteMakefileArgs = (
     'YAML::XS' => '0',
     'namespace::autoclean' => '0'
   },
-  'VERSION' => '0.012_002',
+  'VERSION' => '0.012_003',
   'test' => {
     'TESTS' => 't/*.t'
   }

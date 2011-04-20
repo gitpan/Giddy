@@ -6,11 +6,10 @@ use Any::Moose;
 use namespace::autoclean;
 
 use Carp;
-use Git::Repository;
 use Git::Repository::Log::Iterator;
 use Giddy::Collection;
 
-our $VERSION = "0.012_002";
+our $VERSION = "0.012_003";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -19,11 +18,11 @@ Giddy::Database - A Giddy database.
 
 =head1 VERSION
 
-version 0.012_002
+version 0.012_003
 
 =head1 SYNOPSIS
 
-	my $db = $giddy->getdb('/path/to/database');
+	my $db = $giddy->get_database('/path/to/database');
 
 =head1 DESCRIPTION
 
