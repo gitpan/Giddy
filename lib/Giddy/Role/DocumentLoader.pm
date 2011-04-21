@@ -8,7 +8,7 @@ use Encode;
 use Try::Tiny;
 use YAML::XS;
 
-our $VERSION = "0.012_003";
+our $VERSION = "0.012_004";
 $VERSION = eval $VERSION;
 
 requires 'db';
@@ -20,7 +20,7 @@ Giddy::Role::DocumentLoader - Provides document loading methods for Giddy::Colle
 
 =head1 VERSION
 
-version 0.012_003
+version 0.012_004
 
 =head1 SYNOPSIS
 

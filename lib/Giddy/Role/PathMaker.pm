@@ -6,7 +6,7 @@ use namespace::autoclean;
 use Carp;
 use File::Path qw/make_path/;
 
-our $VERSION = "0.012_003";
+our $VERSION = "0.012_004";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -15,7 +15,7 @@ Giddy::Role::PathMaker - Provides file and directory creation for Giddy::Databas
 
 =head1 VERSION
 
-version 0.012_003
+version 0.012_004
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@ use Carp;
 use Git::Repository 1.18;
 use Giddy::Database;
 
-our $VERSION = "0.012_003";
+our $VERSION = "0.012_004";
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -18,7 +18,7 @@ Giddy - Schema-less, versioned media/document database based on Git.
 
 =head1 VERSION
 
-version 0.012_003
+version 0.012_004
 
 =head1 SYNOPSIS
 
