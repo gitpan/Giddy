@@ -4,7 +4,7 @@ Giddy::Manual - Manual for the Giddy versioned NoSQL database
 
 =head1 VERSION
 
-version 0.012_004
+version 0.013_001
 
 =head1 PROJECT STATUS
 
@@ -47,10 +47,11 @@ Main database features (not all features implemented yet):
 
 =back
 
-Giddy was inspired by the similar, Scala-based L<gimd|https://code.google.com/p/gimd/>
+Giddy was inspired by the similar, Ruby-based L<gitmodel|https://github.com/pauldowman/gitmodel>
 project; the Ruby-based L<toto|http://cloudhead.io/toto> blogging
-platform; and L<MongoDB>. While the database's structure is very similar
-to that of gimd and toto, its API's syntax was written to closely resemble that
+platform; the Scala-based L<gimd|https://code.google.com/p/gimd/>
+project; and L<MongoDB>. While the database's structure closely resembles
+those of gitmodel and toto, its API's syntax was written to closely resemble that
 of MongoDB.
 
 =head2 WHAT ARE GIDDY'S USE CASES?
@@ -642,6 +643,11 @@ useful when sorting):
 
 It's important to note that calling these methods doesn't affect the internal
 iterator, or take it into consideration at all, so you can always call these methods.
+
+A document returned by any of the above mentioned iteration methods is
+returned in hash-ref format. This hash-ref will hold any of the document's
+attributes, including its name (under the '_name' key), and also the path
+to its collection (under the '_coll' key).
 
 =head3 SORTING DOCUMENTS
 

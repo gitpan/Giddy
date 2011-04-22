@@ -14,37 +14,37 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA256
 
-SHA1 d2764b0f694ba142b93f68364aa8fba44fec5fde Changes
+SHA1 47159dcbf3f16c592a7eac364e59fc48fe9cc971 Changes
 SHA1 8add6a8d06f2e7cfd470e3347da2a53ad4be8c62 INSTALL
 SHA1 4fd10efcea7157e7d9c3a45e000c91119dcad1f7 LICENSE
 SHA1 298cea39a5f0c214a13343e0041d48af11828eec MANIFEST
 SHA1 6c3353bec75053cc60c56d5552b92ba0dcb72181 MANIFEST.SKIP
-SHA1 65cbbb59b52720dfc1d02ee8f8ea57891b8ac19c META.json
-SHA1 06b3aa39ee97b36ec91e228338e6ebf109d0730c META.yml
-SHA1 c466c160370b72d25e38305bc81b1306e47cdbeb Makefile.PL
-SHA1 554a2b3a9f0e024814291c6f009c484fbc49998a README
+SHA1 4d50e66528415d73a6b1885c20e1a579bb7eba44 META.json
+SHA1 9d73737102f4cb50d1dc2837833c1349c8acb791 META.yml
+SHA1 67f388569ea0ff8073cbbc03117d0e415e524742 Makefile.PL
+SHA1 aef26d0e059b813d7971ef5a4bc3592af2c5ecaf README
 SHA1 9ef307823461cff5d0326d4e7435dbda4fd478da dist.ini
-SHA1 7e773b264ce4f9c4ee604fc56696ef1eebe52590 lib/Giddy.pm
-SHA1 5d6c01d49b0d093422b91f02c1b91f0e02bfd1e4 lib/Giddy/Collection.pm
-SHA1 8ea54d8074aadfa9aea538c380ed55405e1cc4fe lib/Giddy/Collection/InMemory.pm
-SHA1 32422ad3a9a06e869892423581548044449c905f lib/Giddy/Database.pm
-SHA1 d60526aeacdd84540c3840233739b6ce8b3895ee lib/Giddy/Manual.pod
-SHA1 6baaed5be3ea813004c68e7c52f8dc9907d716ab lib/Giddy/Role/DocumentLoader.pm
-SHA1 b07c065a22cefd3f6affe0b8e49422ee59e92c25 lib/Giddy/Role/DocumentMatcher.pm
-SHA1 c21f21a56784a310134a0f008d4a59a1e99d0f7a lib/Giddy/Role/DocumentStorer.pm
-SHA1 2b659a35db1b1f156daf991daaf8b55badc11f8f lib/Giddy/Role/DocumentUpdater.pm
-SHA1 b837cc07603e99f73029184ad2b47970b70ca324 lib/Giddy/Role/PathAnalyzer.pm
-SHA1 b9e87390d1e85b64060b5630a0451898267a1f62 lib/Giddy/Role/PathMaker.pm
-SHA1 a5f93955b7eea55d30fe78a0e14300874937cd7c lib/Giddy/StaticDirectory.pm
+SHA1 f453cd1de41beb3c99a23b1c2554262bde69682d lib/Giddy.pm
+SHA1 9de4299cd4b2b628948837d9cd6ff44fb4628658 lib/Giddy/Collection.pm
+SHA1 2c8256494ca36041034f1b445fc532da7fe5bba7 lib/Giddy/Collection/InMemory.pm
+SHA1 b10612d14c74d479cc258fc61c1a61e92c119718 lib/Giddy/Database.pm
+SHA1 2fbc1fe4c85957c6c16c9da529fdc1169d3a1e5f lib/Giddy/Manual.pod
+SHA1 635518dc6fee727f988a5b31cfda58f61da3b9e2 lib/Giddy/Role/DocumentLoader.pm
+SHA1 ad90c5fa0c2dac055b1bfc14259008174a981144 lib/Giddy/Role/DocumentMatcher.pm
+SHA1 e3e2b2707ba5e293b8a445afa76ad38c78070d58 lib/Giddy/Role/DocumentStorer.pm
+SHA1 a6981b835dcd18283cc9769f15892a2ee96fbec7 lib/Giddy/Role/DocumentUpdater.pm
+SHA1 d33fa49a385b0bdd43e44d6df1a1ebdf4c5b979d lib/Giddy/Role/PathAnalyzer.pm
+SHA1 f603ed7b15ac0202c3396fe262ccf2da1625916a lib/Giddy/Role/PathMaker.pm
+SHA1 4485d71958842f3ccabf7808009575df82b0be4e lib/Giddy/StaticDirectory.pm
 SHA1 90ca1e82beb238e6ecaee8c1ab3661734f541b83 t/00-load.t
-SHA1 6f41d933bd7829fed34ae0aa51ccb5f89336d449 t/01-cached.t
+SHA1 f57acf5489677c6e1e185ebc72bbfcc9bea48ffa t/01-cached.t
 SHA1 87768d177f8c2e2df9c591cde869e7c8a245555e t/release-dist-manifest.t
 SHA1 9433c240fe590bc404ab68ff63984df763e347ed t/release-pod-coverage.t
 SHA1 b30cbdfaf935017c4568c0c91b242438cb87786e t/release-pod-syntax.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iF4EAREIAAYFAk2veUoACgkQa4OHQAFM10fWhgD/U5MDyw2IOOTEJ2Lv6GR4NYAm
-3mOByHFYc20fPpr6uQ8A/1KgF0BqWdzq++IDPq0vYkHHEdPrvb4WMWNLAlTm2QzX
-=QYf6
+iF4EAREIAAYFAk2x1msACgkQa4OHQAFM10fZzAD+PmcILSvZRAuLackIH2NSuMQ9
+83AuAst66rfcWwcK3JcA/jX2DOiQjJNAvKBq+15tAnKGYGG8n8kMJRfGQBurVqCc
+=+pWP
 -----END PGP SIGNATURE-----

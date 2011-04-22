@@ -5,7 +5,7 @@ package Giddy::Collection::InMemory;
 use Any::Moose;
 use namespace::autoclean;
 
-our $VERSION = "0.012_004";
+our $VERSION = "0.013_001";
 $VERSION = eval $VERSION;
 
 extends 'Giddy::Collection';
@@ -16,7 +16,7 @@ Giddy::Collection::InMemory - An in-memory collection (result of queries).
 
 =head1 VERSION
 
-version 0.012_004
+version 0.013_001
 
 =head1 SYNOPSIS
 

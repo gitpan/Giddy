@@ -10,14 +10,14 @@ use Giddy::Collection::InMemory;
 use Giddy::StaticDirectory;
 use Tie::IxHash;
 
-our $VERSION = "0.012_004";
+our $VERSION = "0.013_001";
 $VERSION = eval $VERSION;
 
 has 'path' => (is => 'ro', isa => 'Str', default => '');
 
 has 'db' => (is => 'ro', isa => 'Giddy::Database', required => 1);
 
-has 'cached' => (is => 'ro', isa => 'Bool', builder => '_build_cached');
+has 'cached' => (is => 'ro', isa => 'Bool', lazy_build => 1);
 
 has '_loc' => (is => 'ro', isa => 'Int', default => 0, writer => '_set_loc');
 
@@ -32,7 +32,7 @@ Giddy::Collection - A Giddy collection.
 
 =head1 VERSION
 
-version 0.012_004
+version 0.013_001
 
 =head1 SYNOPSIS
 
@@ -51,10 +51,17 @@ etc.
 
 =head1 CONSUMES
 
-L<Giddy::Role::DocumentLoader>
-L<Giddy::Role::DocumentMatcher>
-L<Giddy::Role::DocumentStorer>
-L<Giddy::Role::DocumentUpdater>
+=over
+
+=item * L<Giddy::Role::DocumentLoader>
+
+=item * L<Giddy::Role::DocumentMatcher>
+
+=item * L<Giddy::Role::DocumentStorer>
+
+=item * L<Giddy::Role::DocumentUpdater>
+
+=back
 
 =head1 ATTRIBUTES
 
@@ -132,9 +139,16 @@ sub find {
 	my $coll = Giddy::Collection::InMemory->new(
 		path => $self->path,
 		db => $self->db,
-		_query => { find => $query, coll => $self, opts => $opts },
-		_documents => $self->_documents
+		_query => { find => $query, coll => $self, opts => $opts }
 	);
+
+	# we want to make finds by name equality fast, so we're not gonna
+	# give the in-memory collection all documents of the current
+	# collection if that is the case (but only when the current collection
+	# is not an in-memory collection, queries on in-memory collections
+	# will already be fast enough
+	$coll->_set_documents($self->_documents)
+		unless (exists $query->{_name} && (!ref $query->{_name} || (ref $query->{_name} eq 'HASH' && scalar keys %{$query->{_name}} == 1 && $query->{_name}->{'$eq'})));
 
 	# stage 2: are we matching by name? we do if query is a scalar
 	# or if the query hash-ref has the _name key

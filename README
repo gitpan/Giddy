@@ -2,7 +2,7 @@ NAME
     Giddy - Schema-less, versioned media/document database based on Git.
 
 VERSION
-    version 0.012_004
+    version 0.013_001
 
 SYNOPSIS
             use Giddy;
